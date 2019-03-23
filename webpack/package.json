@@ -1,0 +1,12 @@
+{
+  "name": "moon-webpack",
+  "version": "1.0.0",
+  "description": "玩具版 webpack，用于加深理解",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
