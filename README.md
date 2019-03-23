@@ -12,6 +12,10 @@
 
 核心钩子： entryOption 、 afterPlugins 、 run 、 compile 、 afterCompile 、 emit 、 done 。
 
+## 补充
+
+1. 使用 vscode 可以打开多个终端，一个操作 webpack 一个操作 test 
+
 # 一、项目创建
 
 > webpack 作为一个 npm 工具包，支持命令行调用
@@ -50,6 +54,61 @@ $ moonpack
 
 > 参数处理、创建 Compiler 、加载 plugins
 
+## 1. 参数处理
+
+直接读取 config 文件作为初始化参数，未处理命令行入参及默认配置。正规操作下，应该使用 yargs 配置并获取命令行参数，此处简化处理，省略这一步。
+
+注意：需要获取的是命令执行的路径。
+
+## 2. 初始化
+
+### 创建钩子
+
+```bash
+$ npm i tapable -S
+```
+```javascript
+// webpack/lib/Compiler.js
+const { SyncBailHook } = require('tapable');
+this.hooks = {
+    entryOption: new SyncBailHook(["options"]), // 读取配置完成
+};
+```
+
+### 发射钩子
+
+```javascript
+// webpack/bin/webpack.js
+compiler.hooks.entryOption.call(options);
+```
+
+## 3. 加载 plugins
+
+> 此处约定插件必须有 apply 方法，未支持 function 类型插件
+
+```javascript
+// webpack/lib/Compiler.js
+let plugins = this.options.plugins;
+if(Array.isArray(plugins) && plugins.length > 0) {
+    plugins.forEach(plugin => {
+        plugin.apply(this);
+    })
+}
+```
+
+## 4. 测试 plugin
+
+```javascript
+// test/plugins/entry-option-plugin.js
+class EntryOptionPlugin {
+    apply (compiler) {
+        compiler.hooks.entryOption.tap('xxx', options => {
+            console.log('entryOption hooks:', options);
+        })
+    }
+}
+```
+
 # 三、开始编译
 
 > 处理路径、AST 编译(esprima 解析、 escodegen 更新、 estraverse 转换)
@@ -61,3 +120,5 @@ $ moonpack
 # 五、支持 loader
 
 # 六、支持 plugin
+
+> 二、初始化 - 4. 测试 已经支持了 plugin
