@@ -16,6 +16,36 @@
 
 > webpack 作为一个 npm 工具包，支持命令行调用
 
+## 1. 配置启动脚本
+
+```javascript
+{
+    "bin": {
+        "moonpack": "./bin/webpack.js"
+    },
+}
+```
+
+## 2. 链接到全局
+
+npm link 命令可以将一个任意位置的 npm 包链接到全局执行环境，从而在任意位置使用命令行都可以直接运行该 npm 包。方便本地包测试。
+
+创建链接：
+```bash
+$ npm link
+```
+
+执行效果如下：
+```bash
+/usr/local/bin/moonpack -> /usr/local/lib/node_modules/moon-webpack/bin/webpack.js
+/usr/local/lib/node_modules/moon-webpack -> /Users/moon/store/webpack-like/webpack
+```
+
+进入 test 目录测试：
+```bash
+$ moonpack
+```
+
 # 二、初始化
 
 > 参数处理、创建 Compiler 、加载 plugins
