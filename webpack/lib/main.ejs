@@ -81,50 +81,24 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = "./src/index.js");
+/******/ 	return __webpack_require__(__webpack_require__.s = "<%-entryId%>");
 /******/ })
 /************************************************************************/
 /******/ ({
 
+<% for(let moduleId in modules){ let source = modules[moduleId]; %>
 
-
-/***/ "./src/page/b.js":
+/***/ "<%-moduleId%>":
 /*!**********************!*\
-    !*** ./src/page/b.js ***!
+    !*** <%-moduleId%> ***!
     \**********************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-eval("module.exports = 'moon';");
+eval("<%-source%>");
 
 /***/ }),
 
-
-
-/***/ "./src/page/a.js":
-/*!**********************!*\
-    !*** ./src/page/a.js ***!
-    \**********************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-eval("let text = __webpack_require__('./src/page/b.js');\nmodule.exports = text;");
-
-/***/ }),
-
-
-
-/***/ "./src/index.js":
-/*!**********************!*\
-    !*** ./src/index.js ***!
-    \**********************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-eval("let text = __webpack_require__('./src/page/a.js');\nconsole.log(text);");
-
-/***/ }),
-
-
+<% } %>
 
 /******/ });

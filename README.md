@@ -143,6 +143,7 @@ $ npm i esprima estraverse escodegen -S
         5. 返回 { 代码, 引用关系 }
     4. 调用 parseModule 递归处理依赖
     5. 记录 ID(path) 和 code 对应关系，用于后续输出
+    6. 触发钩子 afterCompile
 
 路径引用转换前后的差异对比：
 <img src="./images/require-path.png">
@@ -150,6 +151,87 @@ $ npm i esprima estraverse escodegen -S
 # 四、文件产出(chunk)
 
 > ejs 模板处理
+
+说明：简化处理，只处理了主入口模板，未处理按需加载
+
+```bash
+$ npm i ejs -S
+```
+
+## 1. 配置模板
+
+```javascript
+/******/ (function(modules) { // webpackBootstrap
+/******/    // 其他固定模板内容 ... 
+/******/ 	return __webpack_require__(__webpack_require__.s = "<%-entryId%>");
+/******/ })
+/************************************************************************/
+/******/ ({
+
+<% for(let moduleId in modules){ let source = modules[moduleId]; %>
+
+/***/ "<%-moduleId%>":
+/*!**********************!*\
+    !*** <%-moduleId%> ***!
+    \**********************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+eval("<%-source%>");
+
+/***/ }),
+
+<% } %>
+
+/******/ });
+```
+
+## 2. 调用模板
+
+说明：除了 this.modules 还需要一个入口模块的 id 需要传入
+
+```javascript
+run () {
+    this.entryId = entry; // 此处简化处理，只处理单入口单配置
+    let tmpl = fs.readFileSync(path.join(__dirname,'main.ejs'),'utf8');
+    let bundle = ejs.compile(tmpl)({
+        modules: this.modules,
+        entryId: this.entryId
+    });
+    this.hooks.emit.call(this);
+    fs.writeFileSync(path.join(dist, filename), bundle);
+    this.hooks.done.call(this);
+}
+```
+
+问题1：直接输出会报错，\n 在输出的时候直接换行了，出现下面的情况
+
+```javascript
+eval("let text = require('./src/page/b.js');
+module.exports = text;");
+```
+
+- 处理换行符转义
+
+```javascript
+source = source.replace(/\n/g, '\\n');
+```
+
+问题2： ReferenceError: require is not defined
+
+- 替换成 __webpack_require__
+
+```javascript
+node.callee.name = '__webpack_require__';
+```
+
+问题3： TypeError: Cannot read property 'call' of undefined at __webpack_require__
+
+- 路径 id 匹配不上，参数中的为 './src/xxx'，缓存的为 'src/xxx'
+
+```javascript
+let moduleId = './' + path.relative(root, modulePath);
+```
 
 # 五、支持 loader
 

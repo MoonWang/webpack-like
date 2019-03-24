@@ -4,6 +4,7 @@ const { SyncHook, SyncBailHook, AsyncSeriesHook } = require('tapable'); // 各�
 const esprima = require('esprima'); // 解析成 AST 
 const estraverse = require('estraverse'); // 遍历更新 AST
 const escodegen = require('escodegen'); // AST 转源码
+const ejs = require('ejs'); // 模板
 
 class Compiler {
     constructor(options) {
@@ -16,10 +17,17 @@ class Compiler {
             // run: new AsyncSeriesHook(["compiler"]), // 启动一次新的编译，异步串行钩子(原生)
             run: new SyncHook(["compiler"]), // 此处简化成同步钩子
             compile: new SyncHook(["compiler"]), // 通知插件启动一次新的编译(原生中和 run 中间还有一个 readRecords )
+            // afterCompile: new AsyncSeriesHook(["compilation"]), // 编译完成(原生异步串行)
+            afterCompile: new SyncHook(["compiler"]), // 编译完成
+            // emit: new AsyncSeriesHook(["compilation"]),
+            emit: new SyncHook(["compiler"]), // 即将输出
+            // done: new AsyncSeriesHook(["stats"]),
+            done: new SyncHook(["compiler"]), // 输出完成
         };
 
         // 3. 声明属性
         this.modules = {}; // 存储对应关系 path: code
+        this.entryId = null;
 
         // 2. 遍历装载插件
         let plugins = this.options.plugins;
@@ -33,15 +41,33 @@ class Compiler {
 
     // 执行编译
     run () {
-        let { root, entry } = this.options;
+        let { 
+            root, 
+            entry, 
+            output: {
+                path: dist,
+                filename
+            }, 
+        } = this.options;
 
         this.hooks.run.call(this);
         this.hooks.compile.call(this);
 
         // 递归解析模块，从入口开始
-        this.parseModule(path.resolve(root, entry));
+        this.parseModule(path.resolve(root, entry), true);
+        // console.log(this.modules);
+        this.hooks.afterCompile.call(this);
 
-        console.log(this.modules);
+        // 输出 chunk
+        this.entryId = entry; // 此处简化处理，只处理单入口单配置
+        let tmpl = fs.readFileSync(path.join(__dirname,'main.ejs'),'utf8');
+        let bundle = ejs.compile(tmpl)({
+            modules: this.modules,
+            entryId: this.entryId
+        });
+        this.hooks.emit.call(this);
+        fs.writeFileSync(path.join(dist, filename), bundle);
+        this.hooks.done.call(this);
     }
 
     // 解析模块及依赖模块
@@ -52,7 +78,7 @@ class Compiler {
         // 1. 获取当前模块相对于 =构建根路径= 计算的 =相对路径= 的 =路径名= dirname
         // 目的：用于给当前模块中的相对 =当前模块= 引用路径补全为相对 =根路径= 的引用路径
         let { root } = this.options; // /Users/moon/store/webpack-like/test
-        let moduleId = path.relative(root, modulePath); // src/index.js (从 root 到 modulePath)
+        let moduleId = './' + path.relative(root, modulePath); // ./src/index.js (从 root 到 modulePath)  注意： moduleId 也需要带上 ./ ，不然匹配不上
         let parentPath = path.dirname(moduleId); // src 获取目录名
         
         // 2. 读取文件内容，等待处理
@@ -68,7 +94,8 @@ class Compiler {
                 this.parseModule(path.join(root, require))
             });
         }
-        // 5. 记录 ID 和转换后代码的对应关系，用于后续输出
+        // 5. 记录 ID 和转换后代码的对应关系，用于后续输出 
+        // 注意，此处的 moduleId 也需要带上 ./ 
         this.modules[moduleId] = parseResult.source;
     }
 
@@ -97,6 +124,8 @@ class Compiler {
                         type: 'Literal',
                         value: moduleId
                     }];
+                    // 更改 require 方法名
+                    node.callee.name = '__webpack_require__';
                     return node;
                 }
                 return node;
@@ -104,6 +133,8 @@ class Compiler {
         });
         // 3. 重新生成代码
         source = escodegen.generate(ast);
+        // 处理换行问题
+        source = source.replace(/\n/g, '\\n');
         // 4. 返回代码及依赖关系
         return { source, requires };
     }

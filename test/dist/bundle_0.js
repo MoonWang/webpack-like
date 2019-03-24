@@ -86,45 +86,37 @@
 /************************************************************************/
 /******/ ({
 
-
-
-/***/ "./src/page/b.js":
-/*!**********************!*\
-    !*** ./src/page/b.js ***!
-    \**********************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-eval("module.exports = 'moon';");
-
-/***/ }),
-
-
-
-/***/ "./src/page/a.js":
-/*!**********************!*\
-    !*** ./src/page/a.js ***!
-    \**********************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-eval("let text = __webpack_require__('./src/page/b.js');\nmodule.exports = text;");
-
-/***/ }),
-
-
-
 /***/ "./src/index.js":
 /*!**********************!*\
-    !*** ./src/index.js ***!
-    \**********************/
+  !*** ./src/index.js ***!
+  \**********************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-eval("let text = __webpack_require__('./src/page/a.js');\nconsole.log(text);");
+eval("// import text1 from './page/a';\n// import text2 from './page/b.js';\n\n// console.log(text1, text2);\n\nlet text = __webpack_require__(/*! ./page/a */ \"./src/page/a.js\");\n\nconsole.log(text);\n\n//# sourceURL=webpack:///./src/index.js?");
 
 /***/ }),
 
+/***/ "./src/page/a.js":
+/*!***********************!*\
+  !*** ./src/page/a.js ***!
+  \***********************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
+eval("// export default 'moon';\nlet text = __webpack_require__(/*! ./b */ \"./src/page/b.js\");\nmodule.exports = text;\n\n//# sourceURL=webpack:///./src/page/a.js?");
+
+/***/ }),
+
+/***/ "./src/page/b.js":
+/*!***********************!*\
+  !*** ./src/page/b.js ***!
+  \***********************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+eval("// export default 'wang';\nmodule.exports = 'moon';\n\n//# sourceURL=webpack:///./src/page/b.js?");
+
+/***/ })
 
 /******/ });
