@@ -90,11 +90,10 @@
 /*!**********************!*\
   !*** ./src/index.js ***!
   \**********************/
-/*! no exports provided */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _page_a__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./page/a */ \"./src/page/a.js\");\n/* harmony import */ var _page_b_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./page/b.js */ \"./src/page/b.js\");\n\n\n\nconsole.log(_page_a__WEBPACK_IMPORTED_MODULE_0__[\"default\"], _page_b_js__WEBPACK_IMPORTED_MODULE_1__[\"default\"]);\n\n//# sourceURL=webpack:///./src/index.js?");
+eval("// import text1 from './page/a';\n// import text2 from './page/b.js';\n\n// console.log(text1, text2);\n\nlet text = __webpack_require__(/*! ./page/a */ \"./src/page/a.js\");\n\nconsole.log(text);\n\n//# sourceURL=webpack:///./src/index.js?");
 
 /***/ }),
 
@@ -102,11 +101,10 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _pag
 /*!***********************!*\
   !*** ./src/page/a.js ***!
   \***********************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony default export */ __webpack_exports__[\"default\"] = ('moon');\n\n//# sourceURL=webpack:///./src/page/a.js?");
+eval("// export default 'moon';\nlet text = __webpack_require__(/*! ./b */ \"./src/page/b.js\");\nmodule.exports = text;\n\n//# sourceURL=webpack:///./src/page/a.js?");
 
 /***/ }),
 
@@ -114,11 +112,10 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony default export */ 
 /*!***********************!*\
   !*** ./src/page/b.js ***!
   \***********************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/*! no static exports found */
+/***/ (function(module, exports) {
 
-"use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony default export */ __webpack_exports__[\"default\"] = ('wang');\n\n//# sourceURL=webpack:///./src/page/b.js?");
+eval("// export default 'wang';\nmodule.exports = 'moon';\n\n//# sourceURL=webpack:///./src/page/b.js?");
 
 /***/ })
 

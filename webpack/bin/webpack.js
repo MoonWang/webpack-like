@@ -7,8 +7,11 @@ const Compiler = require('../lib/Compiler');
 // 1. 获取执行命令的目录
 const root = process.cwd();
 // 2. 加载配置文件
-const options = require(path.join(root, '/webpack.config.js'));
+let options = require(path.join(root, '/webpack.config.js'));
+options = Object.assign({}, { root }, options)
 // 3. 初始化 Compiler
 const compiler = new Compiler(options);
 // 4. 发射 entryOption 钩子（原生传递的数据是 context 和 entry ，这里自由发挥）
 compiler.hooks.entryOption.call(options);
+// 5. 开始编译
+compiler.run();

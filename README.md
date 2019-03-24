@@ -10,11 +10,14 @@
 
 核心阶段：初始化阶段(参数、 Compiler 、plugins)、编译阶段(获取入口、 loader 转换、处理依赖、递归分析、 chunk 模板)、输出阶段(写入文件系统)。
 
-核心钩子： entryOption 、 afterPlugins 、 run 、 compile 、 afterCompile 、 emit 、 done 。
+对应钩子： entryOption 、 afterPlugins 、 run 、 compile 、 afterCompile 、 emit 、 done 。
 
 ## 补充
 
 1. 使用 vscode 可以打开多个终端，一个操作 webpack 一个操作 test 
+2. entryOption 、 afterPlugins 钩子在 v5即将废弃, 原生 webpack 中 run 和 compile 不同，但此处简单实现二者相同
+3. 简单起见，流程大多都是采用的同步操作，而在实际上有一部分是需要异步处理的，可以比对源码实现感受一哈
+4. 简单起见，错误处理流程省略了，而在实际中错误处理是非常关键的，是保证软件稳健运行的基础
 
 # 一、项目创建
 
@@ -112,6 +115,37 @@ class EntryOptionPlugin {
 # 三、开始编译
 
 > 处理路径、AST 编译(esprima 解析、 escodegen 更新、 estraverse 转换)
+
+说明：简化处理，省略 import 转换为 require ，直接使用 CommonJS 规范测试。
+
+```bash
+$ npm i esprima estraverse escodegen -S
+```
+
+## 编译流程
+
+1. 触发钩子 run compile
+2. 解析入口模块，传入绝对路径
+    - 通用模块解析方法 parseModule
+    1. 获取模块相对根路径的路径名，用于补全处理其内部相对引用模块的路径
+        - 查看构建生成文件，自执行函数的参数中，key 作为文件的路径，均是 `./src/xxx` 的格式
+    2. 读取模块文件内容
+    3. 解析模块 AST ，处理引用，获取依赖关系
+        - 通用文件解析方法
+        1. 解析成 AST
+        2. 借助 [在线转换 AST](https://astexplorer.net/) 对比差异，获取转换策略（见下图）
+            - let text = require('./page/a');
+            - let text = require('./page/a');
+        3. 更新 AST ，处理引用路径，并缓存
+            - require 表达式
+            - arguments[0].value 引用路径
+        4. 使用 AST 重新生成代码
+        5. 返回 { 代码, 引用关系 }
+    4. 调用 parseModule 递归处理依赖
+    5. 记录 ID(path) 和 code 对应关系，用于后续输出
+
+路径引用转换前后的差异对比：
+<img src="./images/require-path.png">
 
 # 四、文件产出(chunk)
 

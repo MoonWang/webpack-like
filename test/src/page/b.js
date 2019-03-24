@@ -1,1 +1,2 @@
-export default 'wang';
+// export default 'wang';
+module.exports = 'moon';
