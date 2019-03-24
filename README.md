@@ -235,6 +235,32 @@ let moduleId = './' + path.relative(root, modulePath);
 
 # 五、支持 loader
 
+```javascript
+for(let i = 0; i < rules.length; i++){
+    let rule = rules[i];
+    if(rule.test.test(modulePath)){
+        let loaders = rule.use || rule.loader;
+        if(Array.isArray(loaders)){
+            // 注意是从后向前
+            for(let j = loaders.length - 1 ; j >= 0; j--){
+                // 简单处理，只写了一个 loaderPath ，实际可以设置多个
+                let loader = require(path.resolve(loaderPath, loaders[j]));
+                // 上一个 loader 处理的输出是下一个 loader 输入
+                source = loader(source);
+            }
+        } else {
+            let loader = require(path.resolve(loaderPath, typeof use == 'string' ? use : use.loader));
+            source = loader(source);
+        }
+        break;
+    }
+}
+```
+
+说明：
+1. webpack 规定 resolveLoader.modules 必须是数组，此处为了简单，直接使用了单路径，且没有处理 loader 查找失败的情况
+2. \n 的问题，原生的使用 less-loader 不需要转义，自定义的需要处理转义，未深究原生中 \n 的处理方式
+
 # 六、支持 plugin
 
 > 二、初始化 - 4. 测试 已经支持了 plugin

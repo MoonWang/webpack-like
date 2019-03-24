@@ -6,3 +6,5 @@
 let text = require('./page/a');
 
 console.log(text);
+
+require('./index.less');

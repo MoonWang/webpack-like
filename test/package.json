@@ -12,5 +12,8 @@
   "dependencies": {
     "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0"
+  },
+  "devDependencies": {
+    "less": "^3.9.0"
   }
 }

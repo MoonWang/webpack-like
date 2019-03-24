@@ -47,7 +47,7 @@ class Compiler {
             output: {
                 path: dist,
                 filename
-            }, 
+            }
         } = this.options;
 
         this.hooks.run.call(this);
@@ -77,12 +77,34 @@ class Compiler {
 
         // 1. 获取当前模块相对于 =构建根路径= 计算的 =相对路径= 的 =路径名= dirname
         // 目的：用于给当前模块中的相对 =当前模块= 引用路径补全为相对 =根路径= 的引用路径
-        let { root } = this.options; // /Users/moon/store/webpack-like/test
+        let { root, module: { rules }, resolveLoader: { modules: loaderPath } } = this.options; // /Users/moon/store/webpack-like/test
         let moduleId = './' + path.relative(root, modulePath); // ./src/index.js (从 root 到 modulePath)  注意： moduleId 也需要带上 ./ ，不然匹配不上
         let parentPath = path.dirname(moduleId); // src 获取目录名
         
         // 2. 读取文件内容，等待处理
         let source = fs.readFileSync(modulePath, 'utf8');
+
+        // 6. 使用 loader 处理
+        // console.log(rules);
+        for(let i = 0; i < rules.length; i++){
+            let rule = rules[i];
+            if(rule.test.test(modulePath)){
+                let loaders = rule.use || rule.loader;
+                if(Array.isArray(loaders)){
+                    // 注意是从后向前
+                    for(let j = loaders.length - 1 ; j >= 0; j--){
+                        // 简单处理，只写了一个 loaderPath ，实际可以设置多个
+                        let loader = require(path.resolve(loaderPath, loaders[j]));
+                        // 上一个 loader 处理的输出是下一个 loader 输入
+                        source = loader(source);
+                    }
+                } else {
+                    let loader = require(path.resolve(loaderPath, typeof use == 'string' ? use : use.loader));
+                    source = loader(source);
+                }
+                break;
+            }
+        }
 
         // 3. 解析当前模块
         let parseResult = this.parse(source, parentPath);
